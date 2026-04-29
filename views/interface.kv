@@ -1,0 +1,95 @@
+# Definimos cómo se verá UNA sola fila de la lista (cada canción)
+<SongItem@BoxLayout>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '50dp'
+
+    # Variables que recibirá esta fila
+    title: ''
+    artist: ''
+
+    Label:
+        text: root.title
+        bold: True
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+        padding_x: '10dp'
+
+    Label:
+        text: root.artist
+        color: 0.7, 0.7, 0.7, 1
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+
+    Button:
+        text: 'X'
+        size_hint_x: None
+        width: '50dp'
+        background_color: 0.8, 0.2, 0.2, 1
+        # El evento de eliminar lo conectaremos en la Fase 4
+
+# Contenedor principal de la pantalla
+BoxLayout:
+    orientation: 'vertical'
+    padding: '15dp'
+    spacing: '15dp'
+
+    # --- ZONA SUPERIOR: Formulario ---
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: None
+        height: '160dp'
+        spacing: '10dp'
+
+        Label:
+            text: 'My Music Library'
+            font_size: '24sp'
+            bold: True
+            size_hint_y: None
+            height: '30dp'
+
+        TextInput:
+            id: title_input
+            hint_text: 'Song Title'
+            multiline: False
+            size_hint_y: None
+            height: '40dp'
+
+        TextInput:
+            id: artist_input
+            hint_text: 'Artist Name'
+            multiline: False
+            size_hint_y: None
+            height: '40dp'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: '10dp'
+            size_hint_y: None
+            height: '40dp'
+
+            Button:
+                id: add_button
+                text: 'Add Song'
+                background_color: 0.2, 0.6, 1, 1
+
+            Button:
+                id: save_button
+                text: 'Save to Disk'
+                background_color: 0.2, 0.8, 0.2, 1
+
+    # --- ZONA INFERIOR: Lista de Canciones ---
+    # RecycleView es el componente más óptimo en Kivy para listas en móviles
+    RecycleView:
+        id: song_list
+        viewclass: 'SongItem' # Usa el diseño que definimos arriba
+
+        RecycleBoxLayout:
+            default_size: None, dp(50)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            spacing: '5dp'
