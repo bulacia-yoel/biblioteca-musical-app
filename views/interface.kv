@@ -1,12 +1,14 @@
-# Definimos cómo se verá UNA sola fila de la lista (cada canción)
+# Definimos cómo se verá UNA sola fila de la lista
 <SongItem@BoxLayout>:
     orientation: 'horizontal'
     size_hint_y: None
-    height: '50dp'
+    height: '55dp'
 
     # Variables que recibirá esta fila
     title: ''
     artist: ''
+    file_path: ''
+    index: -1
 
     Label:
         text: root.title
@@ -24,11 +26,19 @@
         valign: 'middle'
 
     Button:
+        text: 'Play'
+        size_hint_x: None
+        width: '70dp'
+        background_color: 0.2, 0.6, 1, 1
+        on_press: app.controller.play_song(root.file_path)
+
+    Button:
         text: 'X'
         size_hint_x: None
         width: '50dp'
         background_color: 0.8, 0.2, 0.2, 1
-        # El evento de eliminar lo conectaremos en la Fase 4
+        on_press: app.controller.delete_song(root.index)
+
 
 # Contenedor principal de la pantalla
 BoxLayout:
@@ -40,7 +50,7 @@ BoxLayout:
     BoxLayout:
         orientation: 'vertical'
         size_hint_y: None
-        height: '160dp'
+        height: '220dp'
         spacing: '10dp'
 
         Label:
@@ -64,6 +74,13 @@ BoxLayout:
             size_hint_y: None
             height: '40dp'
 
+        TextInput:
+            id: file_path_input
+            hint_text: 'Audio Path: assets/music/song.mp3'
+            multiline: False
+            size_hint_y: None
+            height: '40dp'
+
         BoxLayout:
             orientation: 'horizontal'
             spacing: '10dp'
@@ -76,18 +93,17 @@ BoxLayout:
                 background_color: 0.2, 0.6, 1, 1
 
             Button:
-                id: save_button
-                text: 'Save to Disk'
-                background_color: 0.2, 0.8, 0.2, 1
+                id: stop_button
+                text: 'Stop'
+                background_color: 0.5, 0.5, 0.5, 1
 
     # --- ZONA INFERIOR: Lista de Canciones ---
-    # RecycleView es el componente más óptimo en Kivy para listas en móviles
     RecycleView:
         id: song_list
-        viewclass: 'SongItem' # Usa el diseño que definimos arriba
+        viewclass: 'SongItem'
 
         RecycleBoxLayout:
-            default_size: None, dp(50)
+            default_size: None, dp(55)
             default_size_hint: 1, None
             size_hint_y: None
             height: self.minimum_height
