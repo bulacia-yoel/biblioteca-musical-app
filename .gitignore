@@ -1,2 +1,21 @@
+# Entorno virtual
 env/
+venv/
+
+# Python
 __pycache__/
+*.pyc
+*.pyo
+
+# Kivy logs
+*.log
+.kivy/
+
+# Buildozer / Android build
+.buildozer/
+bin/
+
+# Archivos temporales
+*.tmp
+*.swp
+.DS_Store

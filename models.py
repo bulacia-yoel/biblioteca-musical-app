@@ -1,8 +1,11 @@
 """
 Modelo de datos de la biblioteca musical.
 
-Este archivo contiene la lista enlazada que guarda las canciones
-y los métodos para guardar y cargar información usando JSON.
+Este archivo contiene la lógica principal del proyecto:
+- Nodo de canción.
+- Biblioteca musical como lista enlazada.
+- Playlist como otra lista enlazada.
+- Guardado y carga usando archivos JSON.
 """
 
 import json
@@ -10,174 +13,270 @@ import os
 
 
 class SongNode:
-    """Nodo que representa una canción individual en la lista enlazada."""
+    """Nodo que representa una canción dentro de una lista enlazada."""
 
-    def __init__(self, title, artist, file_path):
+    def __init__(self, titulo, artista, duracion):
         """
-        Inicializa una canción.
+        Crea un nodo de canción.
+
+        El nodo cumple con la estructura solicitada:
+        - datos: diccionario con titulo, artista y duracion.
+        - siguiente: puntero al siguiente nodo.
 
         Args:
-            title (str): Título de la canción.
-            artist (str): Nombre del artista.
-            file_path (str): Ruta del archivo de audio.
+            titulo (str): Título de la canción.
+            artista (str): Nombre del artista.
+            duracion (str): Duración de la canción.
         """
-        self.title = title
-        self.artist = artist
-        self.file_path = file_path
-        self.next_node = None
+        self.datos = {
+            "titulo": titulo,
+            "artista": artista,
+            "duracion": duracion
+        }
+
+        self.siguiente = None
 
 
 class MusicLibrary:
-    """Lista enlazada que gestiona la colección de canciones."""
+    """Lista enlazada principal para almacenar canciones."""
 
     def __init__(self):
         """Inicializa la biblioteca musical vacía."""
-        self.head = None
+        self.cabeza = None
 
-    def add_song(self, title, artist, file_path):
+    def add_song(self, titulo, artista, duracion):
         """
-        Añade una nueva canción al final de la lista enlazada.
-
-        Args:
-            title (str): Título de la canción.
-            artist (str): Nombre del artista.
-            file_path (str): Ruta del archivo de audio.
+        Añade una canción al final de la lista enlazada.
         """
-        new_song = SongNode(title, artist, file_path)
+        nuevo_nodo = SongNode(titulo, artista, duracion)
 
-        if not self.head:
-            self.head = new_song
+        if self.cabeza is None:
+            self.cabeza = nuevo_nodo
             return
 
-        current = self.head
+        actual = self.cabeza
 
-        while current.next_node:
-            current = current.next_node
+        while actual.siguiente is not None:
+            actual = actual.siguiente
 
-        current.next_node = new_song
+        actual.siguiente = nuevo_nodo
+
+    def get_all_songs(self):
+        """
+        Devuelve todas las canciones en forma de lista de diccionarios.
+        """
+        canciones = []
+        actual = self.cabeza
+
+        while actual is not None:
+            canciones.append(actual.datos)
+            actual = actual.siguiente
+
+        return canciones
+
+    def search_songs(self, search_text):
+        """
+        Busca canciones por título o artista.
+        """
+        resultados = []
+        actual = self.cabeza
+        texto = search_text.lower().strip()
+
+        while actual is not None:
+            titulo = actual.datos["titulo"].lower()
+            artista = actual.datos["artista"].lower()
+
+            if texto in titulo or texto in artista:
+                resultados.append(actual.datos)
+
+            actual = actual.siguiente
+
+        return resultados
 
     def delete_song_by_index(self, index):
         """
-        Elimina una canción usando su posición en la lista.
-
-        Args:
-            index (int): Posición de la canción que se desea eliminar.
-
-        Returns:
-            bool: True si se eliminó correctamente, False si no se pudo.
+        Elimina una canción según su posición en la lista.
         """
-        if self.head is None:
+        if self.cabeza is None:
             return False
 
         if index < 0:
             return False
 
         if index == 0:
-            self.head = self.head.next_node
+            self.cabeza = self.cabeza.siguiente
             return True
 
-        current = self.head
-        previous = None
-        current_index = 0
+        actual = self.cabeza
+        anterior = None
+        posicion = 0
 
-        while current:
-            if current_index == index:
-                previous.next_node = current.next_node
+        while actual is not None:
+            if posicion == index:
+                anterior.siguiente = actual.siguiente
                 return True
 
-            previous = current
-            current = current.next_node
-            current_index += 1
+            anterior = actual
+            actual = actual.siguiente
+            posicion += 1
 
         return False
 
-    def get_all_songs(self):
+    def get_song_by_index(self, index):
         """
-        Recorre la lista y devuelve una lista de diccionarios.
-
-        Returns:
-            list: Lista de canciones en formato diccionario.
+        Obtiene una canción según su posición.
         """
-        songs_list = []
-        current = self.head
+        actual = self.cabeza
+        posicion = 0
 
-        while current:
-            songs_list.append({
-                "title": current.title,
-                "artist": current.artist,
-                "file_path": current.file_path
-            })
-            current = current.next_node
+        while actual is not None:
+            if posicion == index:
+                return actual.datos
 
-        return songs_list
+            actual = actual.siguiente
+            posicion += 1
+
+        return None
 
     def clear_library(self):
-        """Vacía la lista enlazada en la RAM."""
-        self.head = None
+        """Vacía completamente la lista enlazada."""
+        self.cabeza = None
+
+    def print_library(self):
+        """
+        Imprime todas las canciones en la terminal.
+        """
+        canciones = self.get_all_songs()
+
+        if len(canciones) == 0:
+            print("La biblioteca está vacía.")
+            return
+
+        print("=== Biblioteca Musical ===")
+
+        for index, song in enumerate(canciones):
+            print(
+                f"{index + 1}. "
+                f"{song['titulo']} - "
+                f"{song['artista']} "
+                f"({song['duracion']})"
+            )
 
     def save_to_json(self, filepath):
         """
-        Guarda las canciones en un archivo JSON.
-
-        Args:
-            filepath (str): Ruta del archivo JSON.
+        Guarda la lista enlazada en un archivo JSON.
         """
-        songs_list = self.get_all_songs()
+        canciones = self.get_all_songs()
 
-        with open(filepath, 'w', encoding='utf-8') as file:
-            json.dump(songs_list, file, indent=4)
+        with open(filepath, "w", encoding="utf-8") as file:
+            json.dump(canciones, file, indent=4, ensure_ascii=False)
 
     def load_from_json(self, filepath):
         """
-        Carga canciones desde un archivo JSON.
-
-        Args:
-            filepath (str): Ruta del archivo JSON.
+        Carga canciones desde un archivo JSON y reconstruye la lista enlazada.
         """
         if not os.path.exists(filepath):
             return
 
         self.clear_library()
 
-        with open(filepath, 'r', encoding='utf-8') as file:
-            try:
-                songs_data = json.load(file)
+        try:
+            with open(filepath, "r", encoding="utf-8") as file:
+                canciones = json.load(file)
 
-                for item in songs_data:
-                    title = item.get('title', '').strip()
-                    artist = item.get('artist', '').strip()
-                    file_path = item.get('file_path', '').strip()
+            for song in canciones:
+                titulo = song.get("titulo", "").strip()
+                artista = song.get("artista", "").strip()
+                duracion = song.get("duracion", "").strip()
 
-                    if title != "" and artist != "":
-                        self.add_song(title, artist, file_path)
+                if titulo != "" and artista != "" and duracion != "":
+                    self.add_song(titulo, artista, duracion)
 
-            except json.JSONDecodeError:
-                pass
+        except json.JSONDecodeError:
+            print("Error: el archivo JSON está vacío o dañado.")
 
 
-if __name__ == '__main__':
-    library = MusicLibrary()
-    test_file = 'songs_data.json'
+class Playlist(MusicLibrary):
+    """
+    Playlist creada a partir de canciones seleccionadas.
 
-    print("1. Añadiendo canciones a la RAM...")
-    library.add_song(
-        "Yellow",
-        "Coldplay",
-        "assets/music/yellow.mp3"
+    También es una lista enlazada, por eso reutiliza los métodos
+    de MusicLibrary.
+    """
+
+    def add_song_from_data(self, song_data):
+        """
+        Añade una canción a la playlist usando un diccionario existente.
+        """
+        self.add_song(
+            song_data["titulo"],
+            song_data["artista"],
+            song_data["duracion"]
+        )
+
+
+if __name__ == "__main__":
+    base_path = os.path.dirname(__file__)
+
+    songs_file = os.path.join(
+        base_path,
+        "data",
+        "songs_data.json"
     )
-    library.add_song(
-        "Bohemian Rhapsody",
-        "Queen",
-        "assets/music/bohemian_rhapsody.mp3"
+
+    playlist_file = os.path.join(
+        base_path,
+        "data",
+        "playlist_data.json"
     )
 
-    print("   Estado de la RAM:", library.get_all_songs())
+    os.makedirs(os.path.dirname(songs_file), exist_ok=True)
 
-    print("\n2. Guardando información en el disco duro...")
-    library.save_to_json(test_file)
-    print("   Archivo 'songs_data.json' actualizado con éxito.")
+    biblioteca = MusicLibrary()
+    playlist = Playlist()
 
-    print("\n3. Cargando desde disco...")
-    library.clear_library()
-    library.load_from_json(test_file)
-    print("   Estado de la RAM:", library.get_all_songs())
+    print("\n1. Cargando canciones desde JSON...")
+    biblioteca.load_from_json(songs_file)
+    biblioteca.print_library()
+
+    print("\n2. Añadiendo una canción de prueba...")
+    biblioteca.add_song(
+        "Hotel California",
+        "Eagles",
+        "6:30"
+    )
+    biblioteca.print_library()
+
+    print("\n3. Buscando canciones por artista o título...")
+    resultados = biblioteca.search_songs("Queen")
+
+    if len(resultados) == 0:
+        print("No se encontraron canciones.")
+    else:
+        print("Resultados encontrados:")
+
+        for song in resultados:
+            print(
+                f"- {song['titulo']} - "
+                f"{song['artista']} "
+                f"({song['duracion']})"
+            )
+
+    print("\n4. Creando una playlist con canciones seleccionadas...")
+    primera_cancion = biblioteca.get_song_by_index(0)
+    segunda_cancion = biblioteca.get_song_by_index(1)
+
+    if primera_cancion is not None:
+        playlist.add_song_from_data(primera_cancion)
+
+    if segunda_cancion is not None:
+        playlist.add_song_from_data(segunda_cancion)
+
+    print("Playlist creada:")
+    playlist.print_library()
+
+    print("\n5. Guardando biblioteca y playlist...")
+    biblioteca.save_to_json(songs_file)
+    playlist.save_to_json(playlist_file)
+
+    print("Datos guardados correctamente.")
